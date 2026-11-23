@@ -14,6 +14,23 @@
 
 ---
 
+## In plain English
+
+Bots are automated visitors to websites. Measuring them is tricky: a headline number can go
+up just because the set of sites being measured changed. This library holds five statistical
+methods that separate a real change from a measuring artifact.
+
+- **It shows how a headline can mislead.** In the bundled example the overall bot rate rises
+  (17.4% to 18.5%) while the rate on sites measured in both years falls (21.6% to 18.1%).
+  Those four figures come from my published report; the inputs behind the example are
+  invented.
+- **Each method is checked** against SciPy or an exact formula.
+- **The Rust core is 17x to 134x faster** than the plain Python version.
+
+**Where it falls short:** all example data is made up. It is not the data or the analysis
+behind the report. One of the five methods, a game model, only shows the direction of an
+effect: its size ranges from 11% to 449% depending on a setting nobody has measured.
+
 ## What this repository is, and is not
 
 Security telemetry looks simple until you ask whether a headline rate moved because
