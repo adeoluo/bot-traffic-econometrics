@@ -1,0 +1,45 @@
+flowchart LR
+    classDef edge     fill:#F59E0B,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+    classDef core     fill:#6366F1,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef data     fill:#10B981,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef control  fill:#0EA5E9,stroke:#1E293B,color:#ffffff,stroke-width:1px;
+    classDef obs      fill:#CBD5E1,stroke:#1E293B,color:#1E293B,stroke-width:1px;
+
+    subgraph Telemetry["Telemetry & Interfaces"]
+        direction TB
+        Panels(["Unbalanced Retail Panels<br/>Survivors, Entrants, Exiters"]):::edge
+        Flows(["Channel x Flow Streams<br/>Web & Mobile API Journeys"]):::edge
+        Challenges(["Interstitial Challenges<br/>23.9% - 79.5% Censored"]):::edge
+        CLI(["CLI & Python API<br/>bot-econometrics"]):::edge
+        Panels ~~~ Flows ~~~ Challenges ~~~ CLI
+    end
+
+    subgraph RustCore["Compiled Rust Core (_bte_rs, PyO3 + Rayon)"]
+        direction TB
+        ShiftShare["Melitz-Polanec + Kitagawa<br/>Dirichlet Cluster Bootstrap"]:::core
+        Trend["Exact Theil-Sen Slope<br/>Tie-Corrected Mann-Kendall"]:::core
+        CensorEM["Multi-Flow Censored EM<br/>Latent Sophistication Solver"]:::core
+        Hawkes["O(N * D) Ozaki Hawkes<br/>Analytic Grad & Lewis-Mohler EM"]:::core
+        ShiftShare ~~~ Trend ~~~ CensorEM ~~~ Hawkes
+    end
+
+    subgraph Identification["Identification & Equilibrium Layer"]
+        direction TB
+        Shapley["Shapley Surge Disentangler<br/>Bot Impulse vs Human Dilution"]:::control
+        Manski["Sharp Manski & Monotone<br/>Partial-Identification Bounds"]:::control
+        Stackelberg["Stackelberg Defense Game<br/>Web -> Mobile API Displacement"]:::control
+        Parity["Differential Parity Gate<br/>Rust vs Python vs SciPy (< 1e-10)"]:::data
+        Shapley ~~~ Manski ~~~ Stackelberg ~~~ Parity
+    end
+
+    subgraph Outputs["Empirical & Policy Outputs"]
+        direction TB
+        F5Twin["2026 F5 Labs Report Twin<br/>All 5 Measurement Traps"]:::obs
+        BoundsOut["Identified Sign Diagnostics<br/>& Bootstrap CIs"]:::obs
+        DefenseAlloc["Optimal Channel Budget<br/>& Flow Risk Rankings"]:::obs
+        F5Twin ~~~ BoundsOut ~~~ DefenseAlloc
+    end
+
+    Telemetry --> RustCore
+    RustCore --> Identification
+    Identification --> Outputs

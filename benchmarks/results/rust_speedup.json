@@ -1,0 +1,36 @@
+{
+  "machine": {
+    "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+    "processor": "arm",
+    "python": "3.15.2",
+    "loadavg_1_5_15": [
+      3.05,
+      2.89,
+      2.85
+    ]
+  },
+  "workloads": {
+    "panel_dirichlet_bootstrap_260_entities_10k_draws": {
+      "rust_median_ms": 10.61,
+      "python_median_ms": 682.236,
+      "speedup_x": 64.3
+    },
+    "hawkes_6d_loglik_grad_per_eval": {
+      "n_events": 35251,
+      "rust_median_ms": 2.48,
+      "python_median_ms": 43.095,
+      "speedup_x": 17.4
+    },
+    "hawkes_6d_em_60_iters": {
+      "n_events": 35251,
+      "rust_median_ms": 60.121,
+      "python_median_ms": 2589.587,
+      "speedup_x": 43.1
+    },
+    "censored_14flow_em_300_iters": {
+      "rust_median_ms": 1.292,
+      "python_median_ms": 172.702,
+      "speedup_x": 133.7
+    }
+  }
+}

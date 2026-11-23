@@ -1,0 +1,3 @@
+*.svg linguist-generated=true
+*.mmd linguist-documentation=true
+benchmarks/results/*.json linguist-generated=true

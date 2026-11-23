@@ -1,0 +1,84 @@
+[project]
+name = "bot-traffic-econometrics"
+version = "0.1.0"
+description = "Econometric decomposition, censored-telemetry bounds, O(N) multivariate Hawkes processes, and Stackelberg channel-displacement models for automated traffic measurement (Rust + Python)"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Adeolu Ogunnoiki", email = "adeoluo@hotmail.com" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Security",
+]
+dependencies = [
+    "numpy>=1.26",
+]
+
+[project.scripts]
+bot-econometrics = "bot_traffic_econometrics.cli:main"
+
+[dependency-groups]
+rust = [
+    "maturin>=1.7,<2",
+]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.14",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "scipy>=1.13",
+]
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[tool.maturin]
+python-source = "src"
+manifest-path = "rust/Cargo.toml"
+module-name = "bot_traffic_econometrics._bte_rs"
+features = ["python"]
+
+[tool.uv]
+cache-keys = [
+    { file = "pyproject.toml" },
+    { file = "rust/Cargo.toml" },
+    { file = "rust/src/**/*.rs" },
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests", "benchmarks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "C4", "RUF"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["bot_traffic_econometrics"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["scipy"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true

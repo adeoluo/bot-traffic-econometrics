@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: format · lint · type · scipy-parity
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Rust extension and install dev + SciPy dependencies
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
+        run: uv sync --dev --group rust --python ${{ matrix.python-version }}
+
+      - name: Format check (ruff)
+        run: uv run --no-sync ruff format --check .
+
+      - name: Lint (ruff)
+        run: uv run --no-sync ruff check .
+
+      - name: Strict type check (mypy)
+        run: uv run --no-sync mypy src tests benchmarks
+
+      - name: Tests + Rust/SciPy differential parity + coverage gate
+        env:
+          BTE_REQUIRE_RUST: "1"
+        run: >-
+          uv run --no-sync pytest --cov=src --cov-report=xml
+          --cov-report=term-missing --cov-fail-under=85
+
+  rust:
+    name: rust fmt · clippy · cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Install uv and Python 3.12 for PyO3 check
+        uses: astral-sh/setup-uv@v10.3.3
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Format, clippy (-D warnings), and Rust unit tests
+        working-directory: rust
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+
+      - name: Build Python wheel and sdist
+        run: uv build
