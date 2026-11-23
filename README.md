@@ -1,7 +1,7 @@
 <h1 align="center">Bot Traffic Econometrics</h1>
 
 <p align="center">
-  <em>Causal decomposition, censored-telemetry Manski bounds, O(N * D) multivariate Hawkes processes, and Stackelberg channel-displacement games for adversarial bot telemetry (compiled Rust core + typed Python).</em>
+  <em>A methods library for bot-traffic measurement: unbalanced-panel rate decomposition, Manski bounds under censored telemetry, O(N * D) multivariate Hawkes processes, and a Stackelberg channel game (compiled Rust core + typed Python). It ships synthetic examples only.</em>
 </p>
 
 <p align="center">
@@ -14,28 +14,37 @@
 
 ---
 
-## Published Research Context & Media Coverage
+## What this repository is, and is not
 
-Security telemetry looks deceptively simple until you ask whether a headline metric moved because
-**attackers changed behavior**, **customer cohorts rotated**, **human traffic diluted the
-denominator**, or **interstitial CAPTCHAs censored client-side sensors**.
+Security telemetry looks simple until you ask whether a headline rate moved because
+**attackers changed behavior**, **the set of customers being measured changed**, **human
+traffic diluted the denominator**, or **challenge pages kept client-side sensors from
+running**. I ran into each of those while writing a threat-research report, and this library
+implements general-purpose estimators for them.
 
-This library formalizes and generalizes the econometric, partial-identification, and point-process
-methods motivated by my published **F5 Labs** threat-research study and subsequent industry
-analysis:
+- **It is** a tested implementation of five methods, each checked against `SciPy` or an
+  algebraic identity, with a compiled Rust core.
+- **It is not the analysis behind the report.** The report was produced inside F5 on customer
+  telemetry with F5's own tooling. None of that data or code is here. The Hawkes, Manski and
+  Stackelberg parts are my own extensions of questions the report raises, not methods taken
+  from it.
+- **It does not reproduce the report's results.** The bundled example uses invented retailer
+  panels sized so that their aggregates equal figures printed in the public report (see
+  [Worked example](#worked-example-on-synthetic-data-calibrated-to-the-public-report)). That
+  shows how the methods behave on inputs with those aggregates and nothing about real
+  retailers.
+- **Evidence level:** unit tested and validated against reference implementations. Not run on
+  real telemetry in this repository, not independently reproduced, not used in production.
 
-- **Primary Research Paper (F5 Labs, Nov 18, 2026)** - Adeolu Ogunnoiki,
-  [*"Automation leading up to Black Friday"*](https://www.f5.com/labs/articles/2026-black-friday-bot-report)
-  ([Full PDF](https://cdn.sanity.io/files/k6fem79d/translations-production/1d1028afb94e20d907a0b98ef084535e84fc9cd5.pdf) ·
-  [F5 Labs Author Page](https://www.f5.com/labs/authors/adeolu-ogunnoiki))
-- **Executive CISO Commentary (F5 Blog, Nov 19, 2026)** - Sean Murphy (North America Field CISO, F5),
-  [*"The Black Friday automation trend everyone gets wrong"*](https://www.f5.com/company/blog/the-black-friday-automation-trend-everyone-gets-wrong)
-- **External Security Press (*Dark Reading*, Nov 19, 2026)** - Alexander Culafi,
-  [*"Why Holiday Security Can't Wait for Black Friday"*](https://www.darkreading.com/cybersecurity-operations/why-holiday-security-cant-wait-black-friday)
+The report and two articles that discuss it:
 
-> **Data boundary:** No proprietary customer telemetry is included in this repository. All bundled
-> panels and point-process traces are synthetic or calibrated exclusively to public aggregate moments
-> published in the open F5 Labs report above.
+- Adeolu Ogunnoiki, [*Automation leading up to Black Friday*](https://www.f5.com/labs/articles/2026-black-friday-bot-report),
+  F5 Labs, Nov 18, 2026 ([PDF](https://cdn.sanity.io/files/k6fem79d/translations-production/1d1028afb94e20d907a0b98ef084535e84fc9cd5.pdf) ·
+  [author page](https://www.f5.com/labs/authors/adeolu-ogunnoiki)).
+- Sean Murphy (Field CISO, North America, F5), [*The Black Friday automation trend everyone gets wrong*](https://www.f5.com/company/blog/the-black-friday-automation-trend-everyone-gets-wrong),
+  F5 blog, Nov 19, 2026.
+- Alexander Culafi, [*Why Holiday Security Can't Wait for Black Friday*](https://www.darkreading.com/cybersecurity-operations/why-holiday-security-cant-wait-black-friday),
+  Dark Reading, Nov 19, 2026. The article covers the F5 study; it does not name me.
 
 ---
 
@@ -92,10 +101,13 @@ before client-side behavioral sensors execute, latent bot sophistication $v_S \i
 is non-randomly censored:
 
 - **Sharp Distribution-Free Manski Bounds:** $I^* \in [(1 - c)I_U,\; (1 - c)I_U + c]$ of exact
-  width $c$. At 2024's `79.5%` challenge rate, the assumption-free interval has width `0.795`,
-  proving mathematically that naive `2023 -> 2024` sophistication jumps (`0.07 -> 0.23`) are
-  **sign-ambiguous without selection assumptions**, whereas `2024 -> 2025` (`0.23 -> 0.98` at
-  `41.3%` censoring) is **strictly increasing** under adverse interception ($\mathbb{E}[v_S \mid C=1] \le I_U$).
+  width $c$. At the `79.5%` challenge rate the report gives for 2024, the assumption-free
+  interval has width `0.795`, so a rise in the uncensored index from `0.07` to `0.23` between
+  2023 and 2024 does not fix the sign of the change in the true index. The `0.23 -> 0.98`
+  rise to 2025 (at `41.3%` censoring) does fix it, but only under the added assumption that
+  challenged traffic is no more sophisticated than graded traffic
+  ($\mathbb{E}[v_S \mid C=1] \le I_U$). These are consequences of the published rates, not
+  findings about real bots.
 - **Joint Multi-Flow EM Solver:** Estimates flow-specific latent mixes $\pi_f \in \Delta^2$ and
   shared tier challenge propensities $\gamma \in (0, 1)^3$ across flows with varying challenge
   policy exposure $e_f \in (0, 1]$ via 1-D concave Newton/bisection M-steps in Rust.
@@ -114,28 +126,55 @@ $g_j(r) = e^{-\beta(t_r - t_{r-1})}(g_j(r-1) + \mathbf{1}[m_{r-1}=j])$:
 
 ### 5. Stackelberg Web-vs-Mobile-API Displacement Game (`game.py`)
 
-Formalizes the cross-channel substitution risk highlighted in the F5 Labs report (`33x -> 14x -> 12x`
-Web-to-Mobile-API automation ratio compression) and Sean Murphy's Field CISO blog: when a
-budget-constrained defender hardens Web endpoints alone ($u_W > 0, u_M = 0$), a cost-minimizing
-adversary with cross-channel capacity coupling $\gamma > 0$ displaces **+135.8%** additional attack
-mass onto Mobile APIs. Solving the **Stackelberg leader equilibrium** co-allocates Web and Mobile
-API friction and cuts residual weighted attack damage by **22.1%** at the exact same defense budget.
+A thought experiment about a mechanism the report raises (it cautions that where API
+protection is weaker, attackers can shift to that channel). A defender with a fixed budget
+chooses controls $u_W, u_M$; an attacker with quadratic congestion costs and a cross-channel
+capacity coupling $\gamma$ best-responds in closed form (KKT), and the leader problem is
+solved along the budget frontier.
+
+**Nothing in this model is estimated from data, and it produces no number worth quoting.**
+Every parameter is an illustrative default. `sensitivity_sweep()` solves the game over 216
+parameter combinations (API control efficacy, API congestion cost, budget, 36 per coupling):
+
+| Coupling $\gamma$ | Extra attack work on the API when only Web is hardened (min / median / max) | Loss cut by co-allocating at the same budget (min / median / max) |
+|---:|---:|---:|
+| 0.0 | 0% / 0% / 0% | 0% / 0.3% / 63.7% |
+| 0.1 | 10.6% / 20.2% / 21.2% | 0% / 2.3% / 67.6% |
+| 0.3 | 34.7% / 65.9% / 69.3% | 0% / 9.8% / 73.4% |
+| 0.55 (default) | 71.5% / 119.8% / 143.0% | 0% / 20.1% / 77.2% |
+| 0.8 | 118.9% / 175.2% / 237.7% | 0% / 28.5% / 79.3% |
+| 1.2 | 231.1% / 290.4% / 448.7% | 0% / 36.3% / 81.4% |
+
+What survives the sweep is a direction: with uncoupled channels nothing moves, with any
+coupling hardening Web alone always moves attack work to the API, and co-allocating never
+does worse. The size runs from 11% to 449% and is set by a parameter nobody has measured.
+An earlier version of this README quoted the default-parameter outputs (135.8% and 22.1%) as
+if they were results; they are one cell of this table.
 
 ---
 
-## Reproducing the 2026 F5 Labs Empirical Findings
+## Worked example on synthetic data calibrated to the public report
 
-Run `uv run bot-econometrics` (or `--json` for structured output; committed artifact in
-[`benchmarks/results/f5_reproduction.json`](benchmarks/results/f5_reproduction.json)):
+`uv run bot-econometrics` runs the methods on invented inputs
+([`calibrated_example.py`](src/bot_traffic_econometrics/calibrated_example.py)); output is
+committed in [`benchmarks/results/calibrated_example.json`](benchmarks/results/calibrated_example.json).
+The inputs were sized by hand so the quantities in the middle column equal figures printed in
+the report. Those match by construction. The right-hand column is what the methods return on
+those invented inputs; it depends on choices the report does not publish (how many retailers,
+how large, which ones leave) and is not a statement about F5's data.
 
-| Empirical Phenomenon (Ogunnoiki, F5 Labs 2026) | Headline Metric | Econometric / Structural Decomposition |
+| Method | Calibrated to (from the public report) | Method output on the invented inputs |
 |---|---|---|
-| **2023 -> 2024 Panel Shift** | `17.4% -> 18.5%` (`+1.1 pp`) | Same-store survivors **fell** `21.6% -> 18.1%` (`-3.4 pp` within-cohort); `+4.5 pp` composition lift from `<2%` bot retailers exiting |
-| **2024 -> 2025 Panel Shift** | `18.5% -> 28.6%` (`+10.1 pp`) | Same-store survivors **surged** `16.7% -> 29.8%` (`+13.1 pp` within-cohort behavioral escalation; `-3.0 pp` composition offset) |
-| **Black Friday 2023 & 2024 Rate Dips** | `15.3% -> 11.9%` & `17.8% -> 14.1%` | **Diluted bot surges:** positive bot impulses (`+2.15 pp`, `+2.11 pp`) masked by human-shopper denominator dilution (`-5.58 pp`, `-5.78 pp`) |
-| **Black Friday 2025 Rate Dip** | `24.5% -> 15.0%` | **Genuine contraction + dilution:** both bot impulse (`-3.88 pp`) and human dilution (`-5.58 pp`) moved negative |
-| **Interstitial Challenge Censoring** | Uncensored index `0.07 -> 0.23 -> 0.98` | `79.5%` censoring in 2024 yields sharp Manski bounds `[0.06, 0.86]` (`2023 -> 2024` sign-ambiguous; `2024 -> 2025` strictly increasing under adverse interception) |
-| **Flow Rate vs Volume-Share Paradox** | Ecommerce `add_to_cart` `54.2%` rate; QSR `gift_card` `10.1%` rate | Rank inversion: `session_create` carries **85%** of Ecommerce bot volume; `login` carries **77%** of QSR bot volume |
+| Panel decomposition, 2023 to 2024 | aggregate `17.4% -> 18.5%`; same-store `21.6% -> 18.1%` | within-cohort `-3.4 pp`, composition `+4.5 pp` (six invented retailers, two of them low-bot exits) |
+| Panel decomposition, 2024 to 2025 | aggregate `18.5% -> 28.6%`; same-store `16.7% -> 29.8%` | within-cohort `+13.1 pp`, composition `-3.0 pp` |
+| Surge attribution, Black Friday 2023 and 2024 | November rates `15.3%`, `17.8%`; bot volume `+20%`, `+17%`; human volume `+61%`, `+54%` | rate falls to `11.9%` and `14.1%`: bot impulse `+2.15`, `+2.11 pp` against human dilution `-5.58`, `-5.78 pp`. The report prints `11.6%` and `14.8%`; the rounded growth figures do not recover them exactly |
+| Surge attribution, Black Friday 2025 | November rate `24.5%`; bot volume `-22%`; human volume `+43%` | rate falls to `15.0%` (report: `14.6%`): bot impulse `-3.88 pp`, human dilution `-5.58 pp` |
+| Censoring bounds, Ecommerce Web | challenge rates `23.9%`, `79.5%`, `41.3%`; uncensored index `0.07`, `0.23`, `0.98` | Manski bounds `[0.05, 0.29]`, `[0.05, 0.84]`, `[0.58, 0.99]`: 2023 to 2024 sign not identified; 2024 to 2025 increasing under adverse interception |
+| Rate versus volume share | Ecommerce `add_to_cart` rate `54.2%`, `session_create` 85% of bot volume; QSR `gift_card` rate `10.1%`, `login` 77% of bot volume | rank inversion between rate and share (flow sizes invented to hit those four figures) |
+
+The report itself states a different decomposition over the full 2023 to 2025 span (`+11.2 pp`
+split into `+5.6 pp` within-cohort and `+5.5 pp` composition). The per-period splits above come
+from the invented panels and should not be read against it.
 
 ---
 
@@ -170,6 +209,12 @@ raw timings committed in [`benchmarks/results/rust_speedup.json`](benchmarks/res
 
 ## Limitations & Scope Boundaries
 
+- **No real data.** Every panel, flow table and event stream in the repository is synthetic.
+  The estimators have not been run on real telemetry here, so nothing in this repository is
+  evidence about attacker behavior.
+- **The channel game is uncalibrated.** See section 5: it supports a direction and no size.
+- **The Hawkes model has not been fitted to real event data.** The parity and recovery tests
+  use streams simulated from the same model family, which is the easiest case.
 - **Point identification vs partial identification under censoring:** With a single cross-sectional
   flow, latent sophistication under arbitrary challenge selection is only set-identified (Manski
   width $c$). `fit_censored_sophistication_em` achieves point identification by pooling $\ge 2$
@@ -193,7 +238,7 @@ uv run ruff check .
 uv run mypy src tests benchmarks
 BTE_REQUIRE_RUST=1 uv run pytest -v
 
-# Reproduce the 2026 F5 Labs econometric findings and Rust benchmarks
+# Run the synthetic worked example and the Rust-versus-Python benchmarks
 uv run bot-econometrics
 uv run python benchmarks/run_benchmarks.py
 ```

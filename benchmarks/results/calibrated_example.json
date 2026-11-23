@@ -1,0 +1,184 @@
+{
+  "data": "synthetic: invented retailer panels sized so their aggregates equal figures printed in the public report; not F5 telemetry, and not a reproduction of it",
+  "using_rust": true,
+  "panel_2023_2024": {
+    "r0": 0.1742,
+    "r1": 0.185,
+    "delta_total": 0.0108,
+    "survivor_r0": 0.216,
+    "survivor_r1": 0.181,
+    "within_behavior": -0.034,
+    "total_composition": 0.0448,
+    "identity_residual": 3.469446951953614e-18
+  },
+  "panel_2024_2025": {
+    "r0": 0.185,
+    "r1": 0.286,
+    "delta_total": 0.101,
+    "survivor_r0": 0.167,
+    "survivor_r1": 0.298,
+    "within_behavior": 0.1309,
+    "total_composition": -0.0299,
+    "identity_residual": 2.7755575615628914e-17
+  },
+  "black_friday_surge_shapley": {
+    "2023": {
+      "baseline_rate": 0.153,
+      "event_rate": 0.1187,
+      "bot_impulse_pp": 2.15,
+      "human_dilution_pp": -5.58,
+      "is_diluted_bot_surge": true
+    },
+    "2024": {
+      "baseline_rate": 0.178,
+      "event_rate": 0.1413,
+      "bot_impulse_pp": 2.11,
+      "human_dilution_pp": -5.78,
+      "is_diluted_bot_surge": true
+    },
+    "2025": {
+      "baseline_rate": 0.245,
+      "event_rate": 0.1504,
+      "bot_impulse_pp": -3.88,
+      "human_dilution_pp": -5.58,
+      "is_diluted_bot_surge": false
+    }
+  },
+  "censoring_manski_bounds": {
+    "2023": {
+      "censoring_rate": 0.239,
+      "naive_uncensored_index": 0.07,
+      "manski_bounds": [
+        0.0533,
+        0.2923
+      ],
+      "adverse_interception_bounds": [
+        0.0533,
+        0.07
+      ]
+    },
+    "2024": {
+      "censoring_rate": 0.795,
+      "naive_uncensored_index": 0.23,
+      "manski_bounds": [
+        0.0471,
+        0.8422
+      ],
+      "adverse_interception_bounds": [
+        0.0471,
+        0.23
+      ]
+    },
+    "2025": {
+      "censoring_rate": 0.413,
+      "naive_uncensored_index": 0.98,
+      "manski_bounds": [
+        0.5753,
+        0.9883
+      ],
+      "adverse_interception_bounds": [
+        0.5753,
+        0.98
+      ]
+    }
+  },
+  "stackelberg_channel_equilibrium": {
+    "parameters": "illustrative defaults, not estimated from any data",
+    "web_only_controls": [
+      0.95,
+      0.0
+    ],
+    "stackelberg_controls": [
+      0.6599,
+      0.2523
+    ],
+    "api_displacement_pct_under_web_only": 135.85,
+    "relative_loss_reduction_pct": 22.07
+  },
+  "stackelberg_sensitivity_sweep": [
+    {
+      "substitution_coupling": 0.0,
+      "grid_points": 36,
+      "api_displacement_pct": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relative_loss_reduction_pct": [
+        -0.0,
+        0.3,
+        63.7
+      ]
+    },
+    {
+      "substitution_coupling": 0.1,
+      "grid_points": 36,
+      "api_displacement_pct": [
+        10.6,
+        20.2,
+        21.2
+      ],
+      "relative_loss_reduction_pct": [
+        -0.0,
+        2.3,
+        67.6
+      ]
+    },
+    {
+      "substitution_coupling": 0.3,
+      "grid_points": 36,
+      "api_displacement_pct": [
+        34.7,
+        65.9,
+        69.3
+      ],
+      "relative_loss_reduction_pct": [
+        -0.0,
+        9.8,
+        73.4
+      ]
+    },
+    {
+      "substitution_coupling": 0.55,
+      "grid_points": 36,
+      "api_displacement_pct": [
+        71.5,
+        119.8,
+        143.0
+      ],
+      "relative_loss_reduction_pct": [
+        0.0,
+        20.1,
+        77.2
+      ]
+    },
+    {
+      "substitution_coupling": 0.8,
+      "grid_points": 36,
+      "api_displacement_pct": [
+        118.9,
+        175.2,
+        237.7
+      ],
+      "relative_loss_reduction_pct": [
+        -0.0,
+        28.5,
+        79.3
+      ]
+    },
+    {
+      "substitution_coupling": 1.2,
+      "grid_points": 36,
+      "api_displacement_pct": [
+        231.1,
+        290.4,
+        448.7
+      ],
+      "relative_loss_reduction_pct": [
+        -0.0,
+        36.3,
+        81.4
+      ]
+    }
+  ]
+}

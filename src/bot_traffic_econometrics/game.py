@@ -1,9 +1,12 @@
-"""Stackelberg defender-attacker game for cross-channel (Web vs Mobile API) bot displacement.
+"""A Stackelberg defender-attacker game for displacement between Web and Mobile API.
 
-Formalizes the channel-asymmetry and protection-lag mechanism analyzed in Ogunnoiki (F5 Labs,
-2026) and Murphy (F5 Field CISO Blog, 2026): hardening Web endpoints without co-allocating
-Mobile API defenses displaces rational cost-minimizing attackers onto Mobile APIs, compressing
-the Web-to-Mobile-API bot ratio (33x -> 14x -> 12x) while raising unmitigated API risk.
+The model is a thought experiment about a mechanism the public report raises: if Web
+endpoints are hardened and Mobile API endpoints are not, a cost-minimizing attacker shifts
+work to the API. Nothing here is estimated from data. Every parameter in `ChannelParams` is
+an illustrative default, and the size of the displacement the model produces is set almost
+entirely by one of them, the substitution coupling. `sensitivity_sweep` exists to make that
+visible: across its grid the displacement ranges over more than an order of magnitude, so the
+model supports a direction (more than zero whenever the channels are coupled) and no number.
 """
 
 from __future__ import annotations
@@ -15,7 +18,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class ChannelParams:
-    """Structural parameters of the two-channel Stackelberg displacement game."""
+    """Parameters of the two-channel game. All defaults are illustrative, none is estimated."""
 
     value_web: float = 1.0
     value_api: float = 0.85
@@ -159,3 +162,61 @@ def solve_stackelberg_defense(
         api_displacement_pct=disp_pct,
         relative_loss_reduction_pct=rel_red,
     )
+
+
+@dataclass(frozen=True)
+class SweepCell:
+    """Range of the two outputs over every grid point that shares one substitution coupling."""
+
+    substitution_coupling: float
+    grid_points: int
+    displacement_pct_min: float
+    displacement_pct_median: float
+    displacement_pct_max: float
+    loss_reduction_pct_min: float
+    loss_reduction_pct_median: float
+    loss_reduction_pct_max: float
+
+
+SWEEP_COUPLINGS: tuple[float, ...] = (0.0, 0.1, 0.3, 0.55, 0.8, 1.2)
+SWEEP_API_EFFICACY: tuple[float, ...] = (0.5, 0.7, 0.82, 0.95)
+SWEEP_API_CONGESTION: tuple[float, ...] = (0.8, 1.6, 3.0)
+SWEEP_BUDGETS: tuple[float, ...] = (0.5, 0.95, 1.5)
+
+
+def sensitivity_sweep(*, grid_points: int = 401) -> tuple[SweepCell, ...]:
+    """Solve the game over a grid of parameters and report the spread of its two outputs.
+
+    For each substitution coupling, the API control efficacy, the API congestion cost and
+    the defense budget are varied over the `SWEEP_*` grids (36 combinations). The point is
+    how wide the ranges are: the displacement figure is a function of the parameters chosen,
+    not a finding.
+    """
+    cells: list[SweepCell] = []
+    for coupling in SWEEP_COUPLINGS:
+        displacement: list[float] = []
+        reduction: list[float] = []
+        for efficacy in SWEEP_API_EFFICACY:
+            for congestion in SWEEP_API_CONGESTION:
+                for budget in SWEEP_BUDGETS:
+                    params = ChannelParams(
+                        substitution_coupling=coupling,
+                        efficacy_api=efficacy,
+                        congestion_api=congestion,
+                    )
+                    eq = solve_stackelberg_defense(budget, params, grid_points=grid_points)
+                    displacement.append(eq.api_displacement_pct)
+                    reduction.append(eq.relative_loss_reduction_pct)
+        cells.append(
+            SweepCell(
+                substitution_coupling=coupling,
+                grid_points=len(displacement),
+                displacement_pct_min=float(np.min(displacement)),
+                displacement_pct_median=float(np.median(displacement)),
+                displacement_pct_max=float(np.max(displacement)),
+                loss_reduction_pct_min=float(np.min(reduction)),
+                loss_reduction_pct_median=float(np.median(reduction)),
+                loss_reduction_pct_max=float(np.max(reduction)),
+            )
+        )
+    return tuple(cells)

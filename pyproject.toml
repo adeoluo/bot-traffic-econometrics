@@ -5,7 +5,7 @@ description = "Econometric decomposition, censored-telemetry bounds, O(N) multiv
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [{ name = "Adeolu Ogunnoiki", email = "adeoluo@hotmail.com" }]
+authors = [{ name = "Adeolu Ogunnoiki" }]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",

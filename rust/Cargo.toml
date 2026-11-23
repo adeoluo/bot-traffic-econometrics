@@ -5,7 +5,7 @@ edition = "2024"
 rust-version = "1.85"
 description = "Rust core of bot-traffic-econometrics: unbalanced-panel shift-share bootstrap, censored EM solver, and O(N) multivariate Hawkes MLE"
 license = "MIT"
-authors = ["Adeolu Ogunnoiki <adeoluo@hotmail.com>"]
+authors = ["Adeolu Ogunnoiki"]
 repository = "https://github.com/adeoluo/bot-traffic-econometrics"
 publish = false
 

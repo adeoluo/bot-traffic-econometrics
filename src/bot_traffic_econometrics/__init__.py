@@ -3,6 +3,11 @@
 from __future__ import annotations
 
 from bot_traffic_econometrics._rust_bridge import USING_RUST
+from bot_traffic_econometrics.calibrated_example import (
+    CalibratedExample,
+    calibrated_retail_panels,
+    run_calibrated_example,
+)
 from bot_traffic_econometrics.censoring import (
     CensoredEMResult,
     FlowCensoringObs,
@@ -11,16 +16,13 @@ from bot_traffic_econometrics.censoring import (
     is_direction_identified,
     manski_sophistication_bounds,
 )
-from bot_traffic_econometrics.f5_benchmarks import (
-    F5ReportReproduction,
-    calibrated_retail_panels,
-    reproduce_f5_findings,
-)
 from bot_traffic_econometrics.game import (
     ChannelParams,
     StackelbergEquilibrium,
+    SweepCell,
     attacker_best_response,
     defender_loss,
+    sensitivity_sweep,
     solve_stackelberg_defense,
 )
 from bot_traffic_econometrics.hawkes import (
@@ -52,10 +54,10 @@ __version__ = "0.1.0"
 
 __all__ = [
     "USING_RUST",
+    "CalibratedExample",
     "CensoredEMResult",
     "ChannelParams",
     "EntityTraffic",
-    "F5ReportReproduction",
     "FlowCensoringObs",
     "FlowRiskSummary",
     "HawkesFit",
@@ -64,6 +66,7 @@ __all__ = [
     "PanelDecomposition",
     "StackelbergEquilibrium",
     "SurgeAttribution",
+    "SweepCell",
     "TrendStability",
     "__version__",
     "assess_pre_event_trend",
@@ -79,7 +82,8 @@ __all__ = [
     "hawkes_loglik_and_grad",
     "is_direction_identified",
     "manski_sophistication_bounds",
-    "reproduce_f5_findings",
+    "run_calibrated_example",
+    "sensitivity_sweep",
     "simulate_multivariate_hawkes",
     "solve_stackelberg_defense",
     "spectral_branching_ratio",

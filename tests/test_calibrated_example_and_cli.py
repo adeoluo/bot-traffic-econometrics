@@ -1,4 +1,4 @@
-"""End-to-end verification of the 2026 F5 Labs empirical benchmarks and CLI."""
+"""The synthetic example hits the aggregates it was calibrated to, and the CLI says what it is."""
 
 from __future__ import annotations
 
@@ -6,12 +6,16 @@ import json
 
 import pytest
 
-from bot_traffic_econometrics import count_sign_consistent_series, reproduce_f5_findings
+from bot_traffic_econometrics import (
+    count_sign_consistent_series,
+    run_calibrated_example,
+    sensitivity_sweep,
+)
 from bot_traffic_econometrics.cli import main
 
 
-def test_f5_report_reproduction_invariants() -> None:
-    rep = reproduce_f5_findings()
+def test_calibrated_example_hits_the_published_aggregates() -> None:
+    rep = run_calibrated_example()
 
     # 1. Headline rates: 17.4% (2023) -> 18.5% (2024) -> 28.6% (2025).
     assert round(100.0 * rep.panel_2023_2024.r0, 1) == 17.4
@@ -37,6 +41,10 @@ def test_f5_report_reproduction_invariants() -> None:
 
     # 3. Interstitial challenge censoring: 2024's 79.5% censoring creates width 0.795.
     assert round(rep.censoring_bounds_by_year[2024].identification_width, 3) == 0.795
+    # The uncensored index of each season equals the published one (0.07, 0.23, 0.98).
+    for year, published in ((2023, 0.07), (2024, 0.23), (2025, 0.98)):
+        naive = rep.censoring_bounds_by_year[year].naive_uncensored_index
+        assert round(naive, 2) == published
     assert rep.ecommerce_2023_vs_2024_direction == "ambiguous"
     assert rep.ecommerce_2024_vs_2025_direction == "strictly_increasing"
 
@@ -66,8 +74,30 @@ def test_cli_text_and_json_modes(capsys: pytest.CaptureFixture[str]) -> None:
     out_txt = capsys.readouterr().out
     assert "compiled Rust (_bte_rs)" in out_txt
     assert "2023->2024 panel" in out_txt
+    assert "synthetic" in out_txt and "parameter choice" in out_txt
 
     assert main(["--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["using_rust"] is True
     assert payload["panel_2023_2024"]["identity_residual"] < 1e-15
+    assert payload["data"].startswith("synthetic")
+    assert "not estimated" in payload["stackelberg_channel_equilibrium"]["parameters"]
+    assert len(payload["stackelberg_sensitivity_sweep"]) == 6
+
+
+def test_displacement_has_a_sign_but_no_size() -> None:
+    cells = {c.substitution_coupling: c for c in sensitivity_sweep(grid_points=201)}
+    # With uncoupled channels, hardening Web moves nothing to the API.
+    assert abs(cells[0.0].displacement_pct_max) < 1e-9
+    # With any coupling it always does, and co-allocating never does worse than Web-only.
+    for coupling, cell in cells.items():
+        assert cell.grid_points == 36
+        assert cell.loss_reduction_pct_min > -1e-6
+        if coupling > 0:
+            assert cell.displacement_pct_min > 0
+    # The size is set by the coupling: it spans more than an order of magnitude over the
+    # grid, so no single figure from this model is a result.
+    positive = [c for k, c in cells.items() if k > 0]
+    smallest = min(c.displacement_pct_min for c in positive)
+    largest = max(c.displacement_pct_max for c in positive)
+    assert largest > 10 * smallest

@@ -1,4 +1,4 @@
-"""CLI entry point for reproducing the 2026 F5 Labs econometric findings and Rust benchmarks."""
+"""CLI: run the methods on the synthetic example calibrated to the public report's aggregates."""
 
 from __future__ import annotations
 
@@ -8,12 +8,17 @@ from collections.abc import Sequence
 from typing import Any
 
 from bot_traffic_econometrics._rust_bridge import USING_RUST
-from bot_traffic_econometrics.f5_benchmarks import reproduce_f5_findings
+from bot_traffic_econometrics.calibrated_example import run_calibrated_example
+from bot_traffic_econometrics.game import sensitivity_sweep
 
 
 def _summary_payload() -> dict[str, Any]:
-    rep = reproduce_f5_findings()
+    rep = run_calibrated_example()
     return {
+        "data": (
+            "synthetic: invented retailer panels sized so their aggregates equal figures "
+            "printed in the public report; not F5 telemetry, and not a reproduction of it"
+        ),
         "using_rust": USING_RUST,
         "panel_2023_2024": {
             "r0": round(rep.panel_2023_2024.r0, 4),
@@ -58,6 +63,7 @@ def _summary_payload() -> dict[str, Any]:
             for yr, b in rep.censoring_bounds_by_year.items()
         },
         "stackelberg_channel_equilibrium": {
+            "parameters": "illustrative defaults, not estimated from any data",
             "web_only_controls": [round(x, 4) for x in rep.channel_equilibrium.web_only_controls],
             "stackelberg_controls": [
                 round(x, 4) for x in rep.channel_equilibrium.stackelberg_controls
@@ -69,13 +75,33 @@ def _summary_payload() -> dict[str, Any]:
                 rep.channel_equilibrium.relative_loss_reduction_pct, 2
             ),
         },
+        "stackelberg_sensitivity_sweep": [
+            {
+                "substitution_coupling": c.substitution_coupling,
+                "grid_points": c.grid_points,
+                "api_displacement_pct": [
+                    round(c.displacement_pct_min, 1),
+                    round(c.displacement_pct_median, 1),
+                    round(c.displacement_pct_max, 1),
+                ],
+                "relative_loss_reduction_pct": [
+                    round(c.loss_reduction_pct_min, 1),
+                    round(c.loss_reduction_pct_median, 1),
+                    round(c.loss_reduction_pct_max, 1),
+                ],
+            }
+            for c in sensitivity_sweep()
+        ],
     }
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="bot-econometrics",
-        description="Reproduce econometric decompositions and censored-telemetry bounds.",
+        description=(
+            "Run the decomposition, surge, censoring and channel-game methods on a synthetic "
+            "example calibrated to the public report's aggregates."
+        ),
     )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -87,6 +113,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     p1 = payload["panel_2023_2024"]
     p2 = payload["panel_2024_2025"]
+    print("Data: synthetic panels calibrated to published aggregates (not F5 telemetry).")
     print(f"Backend: {'compiled Rust (_bte_rs)' if USING_RUST else 'Python fallback'}")
     print(
         f"2023->2024 panel: headline {100 * p1['r0']:.1f}% -> {100 * p1['r1']:.1f}% "
@@ -105,10 +132,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"human dilution {s['human_dilution_pp']:+.2f} pp "
             f"(diluted surge={s['is_diluted_bot_surge']})"
         )
-    eq = payload["stackelberg_channel_equilibrium"]
-    disp = eq["api_displacement_pct_under_web_only"]
+    sweep = payload["stackelberg_sensitivity_sweep"]
+    lo = min(c["api_displacement_pct"][0] for c in sweep if c["substitution_coupling"] > 0)
+    hi = max(c["api_displacement_pct"][2] for c in sweep)
     print(
-        f"Channel game: Web-only defense displaces +{disp:.1f}% extra attack mass onto Mobile API; "
-        f"Stackelberg co-allocation cuts residual loss by {eq['relative_loss_reduction_pct']:.1f}%."
+        "Channel game (illustrative parameters): Web-only defense moves attack work to the "
+        f"Mobile API in every coupled case; the size is a parameter choice ({lo:.0f}% to "
+        f"{hi:.0f}% across the sweep, 0% with no coupling)."
     )
     return 0

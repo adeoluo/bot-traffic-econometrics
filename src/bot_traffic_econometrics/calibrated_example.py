@@ -1,11 +1,23 @@
-"""Calibrated empirical benchmarks reproducing the 2026 F5 Labs Black Friday Bot Report.
+"""A worked example on synthetic data calibrated to published aggregates.
 
-Primary source:
-- Adeolu Ogunnoiki, *Automation leading up to Black Friday*, F5 Labs Threat Research Report,
-  November 18, 2026. https://www.f5.com/labs/articles/2026-black-friday-bot-report
-Industry commentary & coverage:
-- Sean Murphy (North America Field CISO, F5), *The Black Friday automation trend everyone gets
-  wrong*, November 19, 2026.
+This is not a re-analysis of F5 telemetry and reproduces none of the report's results. No
+customer data is in this repository. The retailer panels below are invented: their sizes and
+bot counts were chosen by hand so that the aggregate and same-store rates come out equal to
+figures printed in the public report. Matching those figures is therefore true by
+construction and is tested only to keep the example honest about what it was calibrated to.
+
+What the example does show is the method: given panels with these aggregates, how the
+decomposition, the surge attribution and the censoring bounds behave. Every quantity the
+report does not publish (how a rate change splits into within-cohort and composition terms
+for these invented retailers, the censored bounds, the flow tables, the channel game) depends
+on choices made here and says nothing about real retailers.
+
+Public source of the calibration targets:
+- Adeolu Ogunnoiki, *Automation leading up to Black Friday*, F5 Labs, November 18, 2026.
+  https://www.f5.com/labs/articles/2026-black-friday-bot-report
+Articles that discuss that report:
+- Sean Murphy (Field CISO, North America, F5), *The Black Friday automation trend everyone
+  gets wrong*, November 19, 2026.
   https://www.f5.com/company/blog/the-black-friday-automation-trend-everyone-gets-wrong
 - Alexander Culafi, *Why Holiday Security Can't Wait for Black Friday*, Dark Reading,
   November 19, 2026.
@@ -29,8 +41,8 @@ from bot_traffic_econometrics.surge import SurgeAttribution, attribute_surge_sha
 
 
 @dataclass(frozen=True)
-class F5ReportReproduction:
-    """Structured summary of the five empirical findings reproduced from Ogunnoiki (2026)."""
+class CalibratedExample:
+    """Outputs of the five methods on the synthetic, calibrated example."""
 
     panel_2023_2024: PanelDecomposition
     panel_2024_2025: PanelDecomposition
@@ -46,7 +58,7 @@ class F5ReportReproduction:
 def calibrated_retail_panels() -> tuple[
     list[EntityTraffic], list[EntityTraffic], list[EntityTraffic]
 ]:
-    """Construct a calibrated 3-season unbalanced multi-retailer panel matching published moments:
+    """Three invented retailer panels whose aggregates equal figures in the public report:
 
     - Aggregate automation: `17.4%` (2023) -> `18.5%` (2024) -> `28.6%` (2025)
     - 2023 -> 2024: same-store survivor cohort *falls* `21.6% -> 18.1%`, while exiting low-bot
@@ -90,8 +102,8 @@ def calibrated_retail_panels() -> tuple[
     return y2023, y2024, y2025
 
 
-def reproduce_f5_findings() -> F5ReportReproduction:
-    """Reproduce all five quantitative measurement findings from the 2026 F5 Labs study."""
+def run_calibrated_example() -> CalibratedExample:
+    """Run the five methods on the synthetic panels and illustrative parameters."""
     y23, y24, y25 = calibrated_retail_panels()
     p_23_24 = decompose_panel(y23, y24)
     p_24_25 = decompose_panel(y24, y25)
@@ -127,15 +139,15 @@ def reproduce_f5_findings() -> F5ReportReproduction:
     ecom_obs = {
         2023: FlowCensoringObs(
             "ecommerce_web_2023",
-            uncensored_low=0.875 * 761.0,
-            uncensored_medium=0.070 * 761.0,
+            uncensored_low=0.915 * 761.0,
+            uncensored_medium=0.030 * 761.0,
             uncensored_high=0.055 * 761.0,
             challenged_censored=239.0,
         ),
         2024: FlowCensoringObs(
             "ecommerce_web_2024",
-            uncensored_low=0.592 * 205.0,
-            uncensored_medium=0.204 * 205.0,
+            uncensored_low=0.744 * 205.0,
+            uncensored_medium=0.052 * 205.0,
             uncensored_high=0.204 * 205.0,
             challenged_censored=795.0,
         ),
@@ -168,7 +180,7 @@ def reproduce_f5_findings() -> F5ReportReproduction:
     )
 
     eq = solve_stackelberg_defense(budget=0.95)
-    return F5ReportReproduction(
+    return CalibratedExample(
         panel_2023_2024=p_23_24,
         panel_2024_2025=p_24_25,
         surge_by_year=surges,

@@ -27,17 +27,17 @@ flowchart LR
         direction TB
         Shapley["Shapley Surge Disentangler<br/>Bot Impulse vs Human Dilution"]:::control
         Manski["Sharp Manski & Monotone<br/>Partial-Identification Bounds"]:::control
-        Stackelberg["Stackelberg Defense Game<br/>Web -> Mobile API Displacement"]:::control
+        Stackelberg["Stackelberg Channel Game<br/>Uncalibrated, With Sensitivity Sweep"]:::control
         Parity["Differential Parity Gate<br/>Rust vs Python vs SciPy (< 1e-10)"]:::data
         Shapley ~~~ Manski ~~~ Stackelberg ~~~ Parity
     end
 
     subgraph Outputs["Empirical & Policy Outputs"]
         direction TB
-        F5Twin["2026 F5 Labs Report Twin<br/>All 5 Measurement Traps"]:::obs
+        Example["Synthetic Worked Example<br/>Calibrated to Public Aggregates"]:::obs
         BoundsOut["Identified Sign Diagnostics<br/>& Bootstrap CIs"]:::obs
-        DefenseAlloc["Optimal Channel Budget<br/>& Flow Risk Rankings"]:::obs
-        F5Twin ~~~ BoundsOut ~~~ DefenseAlloc
+        DefenseAlloc["Flow Rate vs Share Rankings<br/>& Sweep Ranges"]:::obs
+        Example ~~~ BoundsOut ~~~ DefenseAlloc
     end
 
     Telemetry --> RustCore

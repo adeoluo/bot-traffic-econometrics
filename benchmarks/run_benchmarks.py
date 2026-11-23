@@ -166,7 +166,9 @@ def main() -> None:
     }
 
     (out_dir / "rust_speedup.json").write_text(json.dumps(bench, indent=2) + "\n")
-    (out_dir / "f5_reproduction.json").write_text(json.dumps(_summary_payload(), indent=2) + "\n")
+    (out_dir / "calibrated_example.json").write_text(
+        json.dumps(_summary_payload(), indent=2) + "\n"
+    )
     print(json.dumps(bench, indent=2))
 
 
