@@ -24,10 +24,9 @@ implements general-purpose estimators for them.
 
 - **It is** a tested implementation of five methods, each checked against `SciPy` or an
   algebraic identity, with a compiled Rust core.
-- **It is not the analysis behind the report.** The report was produced inside F5 on customer
-  telemetry with F5's own tooling. None of that data or code is here. The Hawkes, Manski and
-  Stackelberg parts are my own extensions of questions the report raises, not methods taken
-  from it.
+- **It is not the analysis behind the report.** None of the report's data or code is here.
+  The Hawkes, Manski and Stackelberg parts are my own extensions of questions the report
+  raises, not methods taken from it.
 - **It does not reproduce the report's results.** The bundled example uses invented retailer
   panels sized so that their aggregates equal figures printed in the public report (see
   [Worked example](#worked-example-on-synthetic-data-calibrated-to-the-public-report)). That
@@ -44,7 +43,7 @@ The report and two articles that discuss it:
 - Sean Murphy (Field CISO, North America, F5), [*The Black Friday automation trend everyone gets wrong*](https://www.f5.com/company/blog/the-black-friday-automation-trend-everyone-gets-wrong),
   F5 blog, Nov 19, 2026.
 - Alexander Culafi, [*Why Holiday Security Can't Wait for Black Friday*](https://www.darkreading.com/cybersecurity-operations/why-holiday-security-cant-wait-black-friday),
-  Dark Reading, Nov 19, 2026. The article covers the F5 study; it does not name me.
+  Dark Reading, Nov 19, 2026, which discusses my F5 Labs published research report.
 
 ---
 
@@ -161,7 +160,7 @@ committed in [`benchmarks/results/calibrated_example.json`](benchmarks/results/c
 The inputs were sized by hand so the quantities in the middle column equal figures printed in
 the report. Those match by construction. The right-hand column is what the methods return on
 those invented inputs; it depends on choices the report does not publish (how many retailers,
-how large, which ones leave) and is not a statement about F5's data.
+how large, which ones leave) and is not a statement about the report's data.
 
 | Method | Calibrated to (from the public report) | Method output on the invented inputs |
 |---|---|---|

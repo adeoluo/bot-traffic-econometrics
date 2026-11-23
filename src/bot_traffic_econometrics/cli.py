@@ -17,7 +17,7 @@ def _summary_payload() -> dict[str, Any]:
     return {
         "data": (
             "synthetic: invented retailer panels sized so their aggregates equal figures "
-            "printed in the public report; not F5 telemetry, and not a reproduction of it"
+            "printed in the public report; not the report's data, and not a reproduction of it"
         ),
         "using_rust": USING_RUST,
         "panel_2023_2024": {
@@ -113,7 +113,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     p1 = payload["panel_2023_2024"]
     p2 = payload["panel_2024_2025"]
-    print("Data: synthetic panels calibrated to published aggregates (not F5 telemetry).")
+    print("Data: synthetic panels calibrated to published aggregates (not the report's data).")
     print(f"Backend: {'compiled Rust (_bte_rs)' if USING_RUST else 'Python fallback'}")
     print(
         f"2023->2024 panel: headline {100 * p1['r0']:.1f}% -> {100 * p1['r1']:.1f}% "

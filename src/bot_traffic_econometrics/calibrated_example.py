@@ -1,6 +1,6 @@
 """A worked example on synthetic data calibrated to published aggregates.
 
-This is not a re-analysis of F5 telemetry and reproduces none of the report's results. No
+This is not a re-analysis of the report's data and reproduces none of its results. No
 customer data is in this repository. The retailer panels below are invented: their sizes and
 bot counts were chosen by hand so that the aggregate and same-store rates come out equal to
 figures printed in the public report. Matching those figures is therefore true by
