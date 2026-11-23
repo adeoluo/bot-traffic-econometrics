@@ -14,7 +14,7 @@
 
 ---
 
-## In plain English
+## Summary
 
 Bots are automated visitors to websites. Measuring them is tricky: a headline number can go
 up just because the set of sites being measured changed. This library holds five statistical
